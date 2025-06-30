@@ -38,10 +38,16 @@ resource "aws_instance" "ecs_instance" {
   iam_instance_profile   = aws_iam_instance_profile.ecs_profile.name
   user_data = <<-EOF
               #!/bin/bash
-              echo ECS_CLUSTER=${aws_ecs_cluster.my_cluster.name} >> /etc/ecs/ecs.config
+              echo ECS_CLUSTER=${aws_ecs_cluster.gem_cluster.name} >> /etc/ecs/ecs.config
               EOF
 
 }
+
+resource "aws_iam_instance_profile" "ecs_profile" {
+  name = "ecs-instance-profile"
+  role = aws_iam_role.ecs_instance_role.name
+}
+
 
 resource "aws_iam_role" "ecs_instance_role" {
   name = "ecs-instance-role"
@@ -72,7 +78,7 @@ resource "aws_efs_file_system" "shared" {
   creation_token = "gemgem-storage"
 }
 
-resource "aws_ecs_cluster" "my_cluster" {
+resource "aws_ecs_cluster" "gem_cluster" {
   name = "my-cluster"
 }
 
@@ -102,8 +108,8 @@ resource "aws_ecs_task_definition" "gem_ecs" {
 
 resource "aws_ecs_service" "my_service" {
   name            = "my-service"
-  cluster         = aws_ecs_cluster.gem_ecs.id
-  task_definition = aws_ecs_task_definition.my_task.arn
+  cluster         = aws_ecs_cluster.gem_cluster.id
+  task_definition = aws_ecs_task_definition.gem_ecs.arn
   desired_count   = 1
   launch_type     = "EC2"
 }
@@ -152,6 +158,12 @@ resource "aws_cloudfront_distribution" "cdn" {
     }
 
     viewer_protocol_policy = "redirect-to-https"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
   }
 
   viewer_certificate {
