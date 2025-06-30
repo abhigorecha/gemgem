@@ -131,7 +131,7 @@ resource "aws_db_instance" "db" {
 
 resource "aws_db_subnet_group" "default" {
   name       = "main-subnet-group"
-  subnet_ids = [aws_subnet.public.id]
+  subnet_ids = [aws_subnet.public.id] 
 }
 
 
